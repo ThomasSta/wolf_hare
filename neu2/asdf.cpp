@@ -79,26 +79,26 @@ assemblePaths
 	,int 					startY
 	,stack					curStack
 	,std::vector< stack > &	paths
+	,bool					allPaths	// if true, not only the paths that directly lead to the target are used
+	,int					maxSteps	// maximum number of steps
 	)
 {
 	
-	// std::cout << "x: " << startX << " y: " << startY << std::endl;
 
 	curStack.push_back(std::pair<int, int>(startX, startY));
 	
 	if (startX == goalX && startY == goalY)
 	{
-		// printPath(curStack, 4, 4);
 		paths.push_back(stackCpy(curStack));
-		//std::cout << paths.size() << std::endl;
 		curStack.pop_back();
 		return;
 	}	
 
-	else
+	else if (curStack.size() < maxSteps)
 	{
 		// up
-		if (goalY > startY && !containsPair(curStack, startX, startY + 1))
+		if (	(allPaths || goalY > startY) 
+			&& 	!containsPair(curStack, startX, startY + 1))
 		{
 			assemblePaths
 				(goalX
@@ -106,11 +106,15 @@ assemblePaths
 				,startX
 				,startY + 1
 				,curStack
-				,paths);
+				,paths
+				,allPaths
+				,maxSteps
+				);
 		}
 	
 		// down
-		if (goalY < startY && !containsPair(curStack, startX, startY - 1))
+		if (	(allPaths || goalY < startY) 
+			&& 	!containsPair(curStack, startX, startY - 1))
 		{
 			assemblePaths
 				(goalX
@@ -118,11 +122,15 @@ assemblePaths
 				,startX
 				,startY - 1
 				,curStack
-				,paths);
+				,paths
+				,allPaths
+				,maxSteps
+				);
 		}
 
 		// left
-		if (goalX < startX && !containsPair(curStack, startX - 1, startY))
+		if (	(allPaths || goalX < startX) 
+			&& 	!containsPair(curStack, startX - 1, startY))
 		{
 			assemblePaths
 				(goalX
@@ -130,11 +138,15 @@ assemblePaths
 				,startX - 1 
 				,startY
 				,curStack
-				,paths);
+				,paths
+				,allPaths
+				,maxSteps
+				);
 		}
 		
 		// right
-		if (goalX > startX && !containsPair(curStack, startX + 1, startY))
+		if (	(allPaths || goalX > startX) 
+			&& 	!containsPair(curStack, startX + 1, startY))
 		{
 			assemblePaths
 				(goalX
@@ -142,7 +154,10 @@ assemblePaths
 				,startX + 1
 				,startY
 				,curStack
-				,paths);
+				,paths
+				,allPaths
+				,maxSteps
+				);
 		}
 
 		curStack.pop_back();
@@ -152,10 +167,10 @@ assemblePaths
 
 void
 calcTask
-	(stack w1
-	,stack w2
-	,std::vector<stack> h
-	,std::vector<int> route_length	// list with number of steps to get the hare or -1 if hare faster
+	(stack & w1
+	,stack & w2
+	,std::vector<stack> & h
+	,std::vector<int> & route_length	// list with number of steps to get the hare or -1 if hare faster
 	)
 {
 	stack::iterator w1_it 	= w1.begin();
@@ -246,6 +261,8 @@ int main()
 	,w1_startY
 	,curStack
 	,paths_w1
+	,true
+	,sizeX + sizeY
 	);
 
 	assemblePaths
@@ -255,6 +272,8 @@ int main()
 	,w2_startY
 	,curStack
 	,paths_w2
+	,true
+	,sizeX + sizeY
 	);
 
 	assemblePaths
@@ -264,9 +283,13 @@ int main()
 	,h_startY
 	,curStack
 	,paths_h
+	,false
+	,sizeX + sizeY
 	);
 
-	std::vector<std::vector<std::vector <int> > > route_lengths;//(paths_w1.size());
+	
+
+	std::vector<std::vector<std::vector <int> > > route_lengths;
 	route_lengths.resize(paths_w1.size());
 	for (int i = 0; i < route_lengths.size(); ++i)
 	{
@@ -301,12 +324,28 @@ int main()
 		}
 	}
 
-#if 0
-	for (int i = 0; i < paths.size(); i++)
+#if 1
+	for (int i = 0; i < paths_w1.size(); i++)
 	{
-		//printPath(paths[i], sizeX, sizeY);
-		//std::cout << std::endl;
+		for (int j = 0; j < paths_w2.size(); j++)
+		{
+			std::cout << "WOLF PATHS: w1 = " << i << ", w2 = " << j << std::endl;
+			printPath(paths_w1[i], sizeX, sizeY);
+			std::cout << std::endl;
+			printPath(paths_w2[j], sizeX, sizeY);
+			std::cout << std::endl;
+			for (int k = 0; k < paths_h.size(); k++)
+			{
+				printPath(paths_h[k], sizeX, sizeY);
+				std::cout << std::endl;
+				std::cout << "Length = " << route_lengths[i][j][k] << std::endl;
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		
+		}
 	}
+
 #endif
 	return 0;
 }
