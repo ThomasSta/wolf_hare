@@ -90,7 +90,7 @@ assemblePaths
 	{
 		// printPath(curStack, 4, 4);
 		paths.push_back(stackCpy(curStack));
-		std::cout << paths.size() << std::endl;
+		//std::cout << paths.size() << std::endl;
 		curStack.pop_back();
 		return;
 	}	
@@ -218,48 +218,89 @@ calcTask
 int main()
 {
 
-	int sizeX	= 10;
-	int sizeY	= 10;
+	int sizeX	= 5;
+	int sizeY	= 5;
 
-	int goalX	= 9;
-	int goalY	= 9;
+	int goalX	= sizeX - 1;
+	int goalY	= sizeY - 1;
 
-	int startX	= 0;
-	int startY	= 0;
+	int w1_startX	= 0;
+	int w1_startY	= 1;
+
+	int w2_startX	= 0;
+	int w2_startY	= 3;
+	
+	int h_startX	= 2;
+	int h_startY	= 0;
 	
 	stack curStack;
-	std::vector<stack> paths1;	
-	std::vector<stack> paths2;	
-	std::vector<stack> paths3;	
+	std::vector<stack> paths_w1;	
+	std::vector<stack> paths_w2;	
+	std::vector<stack> paths_h;	
+
 
 	assemblePaths
 	(goalX
 	,goalY
-	,startX
-	,startY
+	,w1_startX
+	,w1_startY
 	,curStack
-	,paths1
+	,paths_w1
 	);
 
 	assemblePaths
 	(goalX
 	,goalY
-	,startX
-	,startY
+	,w2_startX
+	,w2_startY
 	,curStack
-	,paths2
+	,paths_w2
 	);
 
 	assemblePaths
 	(goalX
 	,goalY
-	,startX
-	,startY
+	,h_startX
+	,h_startY
 	,curStack
-	,paths3
+	,paths_h
 	);
 
-	std::cout << paths1.size() << std::endl;
+	std::vector<std::vector<std::vector <int> > > route_lengths;//(paths_w1.size());
+	route_lengths.resize(paths_w1.size());
+	for (int i = 0; i < route_lengths.size(); ++i)
+	{
+		route_lengths[i].resize(paths_w2.size());	
+		for (int j = 0; j < route_lengths[0].size(); ++j)
+		{
+		
+			route_lengths[i][j].resize(paths_h.size());
+		}
+	}
+	std::cout << paths_w1.size() << std::endl;
+	std::cout << paths_w2.size() << std::endl;
+	std::cout << paths_h.size() << std::endl;
+
+	for(int i = 0; i < paths_w1.size(); ++i)
+	{
+		for(int j = 0; j < paths_w2.size(); ++j)
+		{
+	
+			calcTask
+			(paths_w1[i]
+			,paths_w2[j]
+			,paths_h
+			,route_lengths[i][j]	// list with number of steps to get the hare or -1 if hare faster
+			);		
+			
+			
+			for(int k = 0; k < route_lengths[i][j].size(); ++k)
+			{
+				std::cout << route_lengths[i][j][k] << std::endl;		
+			}
+		}
+	}
+
 #if 0
 	for (int i = 0; i < paths.size(); i++)
 	{
