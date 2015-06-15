@@ -73,7 +73,9 @@ stackCpy
 
 void
 assemblePaths
-	(int 					goalX
+	(int 					sizeX
+	,int					sizeY
+	,int 					goalX
 	,int 					goalY
 	,int					startX
 	,int 					startY
@@ -98,10 +100,16 @@ assemblePaths
 	{
 		// up
 		if (	(allPaths || goalY > startY) 
-			&& 	!containsPair(curStack, startX, startY + 1))
+			&& 	!containsPair(curStack, startX, startY + 1)
+			&& startX >= 0
+			&& startX < sizeX
+			&& startY + 1 >= 0
+			&& startY + 1 < sizeY)
 		{
 			assemblePaths
-				(goalX
+				(sizeX
+				,sizeY
+				,goalX
 				,goalY
 				,startX
 				,startY + 1
@@ -114,10 +122,16 @@ assemblePaths
 	
 		// down
 		if (	(allPaths || goalY < startY) 
-			&& 	!containsPair(curStack, startX, startY - 1))
+			&& 	!containsPair(curStack, startX, startY - 1)
+			&& startX >= 0
+			&& startX < sizeX
+			&& startY - 1 >= 0
+			&& startY - 1 < sizeY)
 		{
 			assemblePaths
-				(goalX
+				(sizeX
+				,sizeY
+				,goalX
 				,goalY
 				,startX
 				,startY - 1
@@ -130,10 +144,16 @@ assemblePaths
 
 		// left
 		if (	(allPaths || goalX < startX) 
-			&& 	!containsPair(curStack, startX - 1, startY))
+			&& 	!containsPair(curStack, startX - 1, startY)
+			&& startX - 1 >= 0
+			&& startX - 1 < sizeX
+			&& startY >= 0
+			&& startY < sizeY)
 		{
 			assemblePaths
-				(goalX
+				(sizeX
+				,sizeY
+				,goalX
 				,goalY
 				,startX - 1 
 				,startY
@@ -146,10 +166,16 @@ assemblePaths
 		
 		// right
 		if (	(allPaths || goalX > startX) 
-			&& 	!containsPair(curStack, startX + 1, startY))
+			&& 	!containsPair(curStack, startX + 1, startY)
+			&& startX + 1 >= 0
+			&& startX + 1 < sizeX
+			&& startY >= 0
+			&& startY < sizeY)
 		{
 			assemblePaths
-				(goalX
+				(sizeX
+				,sizeY
+				,goalX
 				,goalY
 				,startX + 1
 				,startY
@@ -253,9 +279,12 @@ int main()
 	std::vector<stack> paths_w2;	
 	std::vector<stack> paths_h;	
 
+	std::cerr << "Assembling paths..." << std::endl;
 
 	assemblePaths
-	(goalX
+	(sizeX
+	,sizeY
+	,goalX
 	,goalY
 	,w1_startX
 	,w1_startY
@@ -266,7 +295,9 @@ int main()
 	);
 
 	assemblePaths
-	(goalX
+	(sizeX
+	,sizeY
+	,goalX
 	,goalY
 	,w2_startX
 	,w2_startY
@@ -277,7 +308,9 @@ int main()
 	);
 
 	assemblePaths
-	(goalX
+	(sizeX
+	,sizeY
+	,goalX
 	,goalY
 	,h_startX
 	,h_startY
@@ -304,11 +337,15 @@ int main()
 	std::cout << paths_w2.size() << std::endl;
 	std::cout << paths_h.size() << std::endl;
 
+	std::cerr << "Comparing paths..." << std::endl;
+
 	for(int i = 0; i < paths_w1.size(); ++i)
 	{
 		for(int j = 0; j < paths_w2.size(); ++j)
 		{
-	
+			
+			std::cerr << "Starting task: w1 = " << i << "/" << paths_w1.size() << "\tw2 = " << j << "/" << paths_w2.size() << std::endl; 
+
 			calcTask
 			(paths_w1[i]
 			,paths_w2[j]
@@ -317,10 +354,6 @@ int main()
 			);		
 			
 			
-			for(int k = 0; k < route_lengths[i][j].size(); ++k)
-			{
-				std::cout << route_lengths[i][j][k] << std::endl;		
-			}
 		}
 	}
 
@@ -336,9 +369,12 @@ int main()
 			std::cout << std::endl;
 			for (int k = 0; k < paths_h.size(); k++)
 			{
-				printPath(paths_h[k], sizeX, sizeY);
-				std::cout << std::endl;
 				std::cout << "Length = " << route_lengths[i][j][k] << std::endl;
+				std::cout << std::endl;
+			}
+			for (int k = 0; k < paths_h.size(); k++)
+			{
+				printPath(paths_h[k], sizeX, sizeY);
 				std::cout << std::endl;
 			}
 			std::cout << std::endl;
