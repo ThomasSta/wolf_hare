@@ -239,39 +239,47 @@ calcTask
 	for (int i = 0; i < h.size(); i++)
 	{
 		int counter = 0;
-		stack::iterator h_it 	= h[i].begin();	
-		stack::iterator w1_it 	= w1.begin();
-		stack::iterator w2_it 	= w2.begin();	
+		int h_idx	= 0;
+		int w1_idx 	= 0;
+		int w2_idx 	= 0;
+
+		stack & h_stack = h[i];
+		// stack::iterator h_it 	= h[i].begin();	
+		// stack::iterator w1_it 	= w1.begin();
+		// stack::iterator w2_it 	= w2.begin();	
 
 		while (true)
 		{
+
+			// std::cout << h_it->first << " " << h_it->second << std::endl;
+
 			// wolf 1 on hare
-			if (	w1_it->first 	== h_it->first
-				&& 	w1_it->second	== h_it->second)
+			if (	w1[w1_idx].first 	== h_stack[h_idx].first
+				&& 	w1[w1_idx].second	== h_stack[h_idx].second)
 			{
 				tmp[i] = counter;
 				break;
 			}
 
 			// wolf 2 on hare
-			if (	w2_it->first 	== h_it->first
-				&& 	w2_it->second	== h_it->second)
+			if (	w2[w2_idx].first 	== h_stack[h_idx].first
+				&& 	w2[w2_idx].second	== h_stack[h_idx].second)
 			{
 				tmp[i] = counter;
 				break;
 			}
 
 			// hare at goal
-			if (h_it == h[i].end())
+			if (h_idx == h_stack.size()-1)
 			{
 				tmp[i] = -1;
 				break;
 			}
 			
-			if (w1_it != w1.end()) w1_it++;
-			if (w2_it != w2.end()) w2_it++;
+			if (w1_idx < w1.size()-1) w1_idx++;
+			if (w2_idx < w2.size()-1) w2_idx++;
 			
-			h_it++;
+			h_idx++;
 			counter++;
 		}
 	}
@@ -317,12 +325,14 @@ reduceRoutes
 				best_wolf_pairs[0] = std::pair<int, int>(i, j);
 			} 	
 			
-			if (wolves_win_counter_local == wolves_win_counter && wolves_win_sum_local < wolves_win_sum)
+			else if (wolves_win_counter_local == wolves_win_counter && wolves_win_sum_local < wolves_win_sum)
 			{
 				wolves_win_sum = wolves_win_sum_local;
+				best_wolf_pairs.resize(1);
+				best_wolf_pairs[0] = std::pair<int, int>(i, j);
 			}
 
-			if (	wolves_win_counter_local == wolves_win_counter
+			else if (	wolves_win_counter_local == wolves_win_counter
 				&& 	wolves_win_sum_local 	 ==  wolves_win_sum)
 			{
 				best_wolf_pairs.push_back(std::pair<int, int>(i, j));
@@ -342,20 +352,20 @@ reduceRoutes
 int main()
 {
 
-	int sizeX	= 8;
-	int sizeY	= 8;
+	int sizeX	= 5;
+	int sizeY	= 5;
 
 	int goalX	= sizeX - 1;
 	int goalY	= sizeY - 1;
 
-	int w1_startX	= 1;
-	int w1_startY	= 3;
+	int w1_startX	= 0;
+	int w1_startY	= 0;
 
 	int w2_startX	= 0;
-	int w2_startY	= 1;
+	int w2_startY	= 5;
 	
-	int h_startX	= 2;
-	int h_startY	= 0;
+	int h_startX	= 0;
+	int h_startY	= 1;
 	
 	stack curStack;
 	std::vector<stack> paths_w1;	
@@ -373,7 +383,7 @@ int main()
 	,w1_startY
 	,curStack
 	,paths_w1
-	,false
+	,true
 	,sizeX + sizeY
 	);
 
@@ -386,7 +396,7 @@ int main()
 	,w2_startY
 	,curStack
 	,paths_w2
-	,false
+	,true
 	,sizeX + sizeY
 	);
 
@@ -426,6 +436,7 @@ int main()
 	std::cout << paths_w2.size() << std::endl;
 	std::cout << paths_h.size() << std::endl;
 
+
 	std::cerr << "\nComparing paths..." << std::endl;
 
 	for(int i = 0; i < paths_w1.size(); ++i)
@@ -450,7 +461,7 @@ int main()
 	std::vector< std::pair<int,int> > best_wolves = reduceRoutes(route_lengths);
 	std::cerr << "Num best routes: " << best_wolves.size() << std::endl;
 
-#if 0
+#if 1
 	for (int i = 0; i < best_wolves.size(); i++)
 	{
 		std::cout << "w1 = " << best_wolves[i].first << "\tw2 = " << best_wolves[i].second << std::endl;
