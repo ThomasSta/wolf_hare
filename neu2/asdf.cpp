@@ -1,9 +1,10 @@
-
 #include <vector>
 #include <stack>
 #include <utility>
 #include <iostream>
 #include <climits>
+#include <mpi.h>
+#include <malloc.h>
 
 typedef std::vector <std::pair <int, int> > stack; 
 
@@ -226,11 +227,15 @@ calcTask
 	(stack & w1
 	,stack & w2
 	,std::vector<stack> & h
-	,std::vector<int> & route_length	// list with number of steps to get the hare or -1 if hare faster
+	,int *route_length	// list with number of steps to get the hare or -1 if hare faster
+	,int w1_index
+	,int w2_index
+	,int w2_length
+	,int h_length
 	)
 {
 
-	route_length.resize(h.size());
+//	route_length.resize(h.size());
 	int tmp[h.size()];
 
 
@@ -286,7 +291,7 @@ calcTask
 
 	for (int i = 0; i < h.size(); i++)
 	{
-		route_length[i] = tmp[i];
+		route_length[w1_index*w2_length*h_length + w2_index*h_length + i] = tmp[i];
 	}
 
 }
@@ -294,7 +299,7 @@ calcTask
 
 std::vector< std::pair <int, int> >
 reduceRoutes
-	(std::vector < std::vector <std::vector <int> > > & routes
+	(int *routes, int w1Size, int w2Size, int hSize
 	)
 {
 	std::vector < std::pair <int, int> >  best_wolf_pairs;
@@ -302,18 +307,19 @@ reduceRoutes
 	int wolves_win_counter 	= 0;
 	int wolves_win_sum		= INT_MAX;
 
-	for (int i = 0; i < routes.size(); i++)
+	for (int i = 0; i < w1Size; i++)
 	{
-		for (int j = 0; j < routes[i].size(); j++)
+		for (int j = 0; j < w2Size; j++)
 		{
 			int wolves_win_counter_local 	= 0;
 			int wolves_win_sum_local 		= 0;
-			for (int k = 0; k < routes[i][j].size(); k++)
+			for (int k = 0; k < hSize; k++)
 			{
-				if (routes[i][j][k] != -1) 
+				std::cout << "i: " << i << " j: " << j << " k: " << k << " index: " << i*w2Size*hSize + j*hSize + k << " inhalt: " << routes[i*w2Size*hSize + j*hSize + k] << std::endl; 
+				if (routes[i*w2Size*hSize + j*hSize + k] != -1) 
 				{
 					wolves_win_counter_local++;		
-					wolves_win_sum_local += routes[i][j][k];
+					wolves_win_sum_local += routes[i*w2Size*hSize + j*hSize + k];
 				}
 			}
 
@@ -349,11 +355,38 @@ reduceRoutes
 	
 }
 
-int main()
+void print(int *route_lengthsRecv, int w1, int w2, int h)
+{
+	for( int i = 0; i < w1; i++)
+	{
+		for( int j = 0; j < w2; j++)
+		{
+			for( int k = 0; k < h; k++)
+			{
+				std::cout << "\ti: " << i << " j: " << j << " k: " << k << std::endl; 
+				std::cout << "Laenge: " << route_lengthsRecv[i*w2*h + j*h + k] << std::endl; 
+			} 
+		} 
+	}
+}		
+
+
+int main(int argc, char **args)
 {
 
-	int sizeX	= 5;
-	int sizeY	= 5;
+	MPI_Init(&argc, &args);
+
+	int size;
+	int rank;
+
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	MPI_Request reqs[size];
+	MPI_Status stats[size];
+
+	int sizeX	= 4;
+	int sizeY	= 4;
 
 	int goalX	= sizeX - 1;
 	int goalY	= sizeY - 1;
@@ -362,10 +395,10 @@ int main()
 	int w1_startY	= 0;
 
 	int w2_startX	= 0;
-	int w2_startY	= 5;
+	int w2_startY	= 4;
 	
 	int h_startX	= 0;
-	int h_startY	= 1;
+	int h_startY	= 2;
 	
 	stack curStack;
 	std::vector<stack> paths_w1;	
@@ -419,27 +452,26 @@ int main()
 	std::cerr << "Hare:\t" << paths_h.size() << std::endl;
 	std::cerr << "\nNumber of tasks (w1 * w2): " << paths_w1.size() * paths_w2.size() << std::endl;
 
-	std::cerr << "\nAllocating space for route comparison..." << std::endl;
+	int start;
+	int end;
 
-	std::vector<std::vector<std::vector <int> > > route_lengths;
-	route_lengths.resize(paths_w1.size());
-	for (int i = 0; i < route_lengths.size(); ++i)
+	if(rank == size - 1)
 	{
-		route_lengths[i].resize(paths_w2.size());	
-		for (int j = 0; j < route_lengths[0].size(); ++j)
-		{
-		
-			route_lengths[i][j].resize(paths_h.size());
-		}
+		start = rank*(paths_w1.size()/size);
+		end = paths_w1.size();
+	}else{
+		start = rank * (paths_w1.size() / size);
+		end = (rank + 1) * (paths_w1.size() / size);
 	}
-	std::cout << paths_w1.size() << std::endl;
-	std::cout << paths_w2.size() << std::endl;
-	std::cout << paths_h.size() << std::endl;
-
+	
+	std::cout << "rank: " << rank << " start: " << start << " end: " << end << std::endl;
+	
+	std::cerr << "\nAllocating space for route comparison..." << std::endl;
+	int route_lengths[(end-start)*paths_w2.size()*paths_h.size()];
 
 	std::cerr << "\nComparing paths..." << std::endl;
 
-	for(int i = 0; i < paths_w1.size(); ++i)
+	for(int i = start; i < end; ++i)
 	{
 		for(int j = 0; j < paths_w2.size(); ++j)
 		{
@@ -450,50 +482,89 @@ int main()
 			(paths_w1[i]
 			,paths_w2[j]
 			,paths_h
-			,route_lengths[i][j]	// list with number of steps to get the hare or -1 if hare faster
+			,route_lengths		// list with number of steps to get the hare or -1 if hare faster
+			,i-start
+			,j
+			,paths_w2.size()
+			,paths_h.size()
 			);		
-			
-			
 		}
 	}
+	MPI_Barrier(MPI_COMM_WORLD);
 
-	std::cerr << "Reducing routes..." << std::endl;
-	std::vector< std::pair<int,int> > best_wolves = reduceRoutes(route_lengths);
-	std::cerr << "Num best routes: " << best_wolves.size() << std::endl;
-
-#if 1
-	for (int i = 0; i < best_wolves.size(); i++)
+	if(rank == 0)
 	{
-		std::cout << "w1 = " << best_wolves[i].first << "\tw2 = " << best_wolves[i].second << std::endl;
-	}	
-
-
-	for (int i = 0; i < paths_w1.size(); i++)
-	{
-		for (int j = 0; j < paths_w2.size(); j++)
+		int route_lengthsRecv[paths_w1.size()*paths_w2.size()*paths_h.size()];
+	
+		//Copy values calculated by rank 0 into big array	
+		for( int i = 0; i < end-start; i++)
 		{
-			std::cout << "WOLF PATHS: w1 = " << i << ", w2 = " << j << std::endl;
-			std::cout << "WOLF 1:" << std::endl;
-			printPath(paths_w1[i], sizeX, sizeY);
-			std::cout << std::endl;
-			std::cout << "WOLF 2:" << std::endl;
-			printPath(paths_w2[j], sizeX, sizeY);
-			std::cout << std::endl;
-			for (int k = 0; k < paths_h.size(); k++)
+			for( int j = 0; j < paths_w2.size(); j++)
 			{
-				std::cout << "Length = " << route_lengths[i][j][k] << std::endl;
-				std::cout << std::endl;
-			}
-			for (int k = 0; k < paths_h.size(); k++)
-			{
-				printPath(paths_h[k], sizeX, sizeY);
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		
-		}
-	}
+				for( int k = 0; k < paths_h.size() ; k++)
+				{
+					route_lengthsRecv[i*paths_w2.size()*paths_h.size() + j*paths_h.size() + k] = route_lengths[i*paths_w2.size()*paths_h.size() + j*paths_h.size() + k];
+				} 		
+			} 
+		} 
 
-#endif
+		//receiving calculated values from all other ranks
+		for( int i = 1; i < size; i++)
+		{
+			MPI_Recv(&route_lengthsRecv[i*((paths_w1.size()*paths_w2.size()*paths_h.size())/size)], (end-start)*paths_w2.size()*paths_h.size(), MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE); // &reqs[i]);
+		}			
+			
+//last rank may have more paths to calculate
+//			MPI_Recv(&route_lengthsRecv[i*((paths_w1.size()*paths_w2.size()*paths_h.size())/size)], (end-start)*paths_w2.size()*paths_h.size(), MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE); //, &status[i]);
+
+//		print(route_lengthRecv, paths_w1.size(), paths_w2.size(), paths_h.size());
+
+		std::cerr << "Reducing routes..." << std::endl;
+		std::vector< std::pair<int,int> > best_wolves = reduceRoutes(route_lengthsRecv, paths_w1.size(), paths_w2.size(), paths_h.size());
+		std::cerr << "Num best routes: " << best_wolves.size() << std::endl;
+	
+		for (int i = 0; i < best_wolves.size(); i++)
+		{
+			std::cout << "w1 = " << best_wolves[i].first << "\tw2 = " << best_wolves[i].second << std::endl;
+		}	
+	
+	#if 0
+		for (int i = 0; i < paths_w1.size(); i++)
+		{
+			for (int j = 0; j < paths_w2.size(); j++)
+			{
+				std::cout << "WOLF PATHS: w1 = " << i << ", w2 = " << j << std::endl;
+				std::cout << "WOLF 1:" << std::endl;
+				printPath(paths_w1[i], sizeX, sizeY);
+				std::cout << std::endl;
+				std::cout << "WOLF 2:" << std::endl;
+				printPath(paths_w2[j], sizeX, sizeY);
+				std::cout << std::endl;
+				for (int k = 0; k < paths_h.size(); k++)
+				{
+					std::cout << "Length = " << route_lengthsRecv[i*paths_w1.size()*paths_h.size() + j*paths_h.size() + k] << std::endl;
+					std::cout << std::endl;
+				}
+				for (int k = 0; k < paths_h.size(); k++)
+				{
+					printPath(paths_h[k], sizeX, sizeY);
+					std::cout << std::endl;
+				}
+				std::cout << std::endl;
+			
+			}
+		}
+	
+	#endif
+
+	}else{
+		MPI_Send(&route_lengths[0], (end-start)*paths_w2.size()*paths_h.size(), MPI_INT, 0, 0, MPI_COMM_WORLD); //, &reqs[rank]); //+(size-1)]);
+	}
+	
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	std::cout << "rank: " << rank << std::endl;
+	MPI_Finalize();
+
 	return 0;
 }
