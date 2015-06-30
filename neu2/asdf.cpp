@@ -5,8 +5,39 @@
 #include <climits>
 #include <mpi.h>
 #include <malloc.h>
+#include <sys/time.h>
+//#include "Timer.hh"
 
 typedef std::vector <std::pair <int, int> > stack; 
+
+//size board
+#define SIZEX 9 
+#define SIZEY 9
+
+//start wolf1
+#define	XW1 0
+#define YW1 0
+
+//start wolf2
+#define XW2 0
+#define YW2 4
+	
+//start hare
+#define XH 0
+#define YH 2
+
+int p_global = 0;
+int length_global = 1000000;
+std::vector< std::pair <int, int> > best_wolves;
+
+void print(short *successes, int size)
+{
+	for( int i = 0; i < size; i+=3)
+	{
+		std::cout << " w1: " << successes[i] << " w2: " << successes[i+1] << " laenge: " << successes[i+2] << std::endl; 
+	}
+}		
+
 
 bool
 containsPair
@@ -30,10 +61,10 @@ printPath
 	,int	height
 	,int	width)
 {
-	for (int k = 0; k < path.size(); ++k )
-	{   
-		std::cout << "x: " << path[k].first << " y: " << path[k].second << std::endl;
-	}
+	//for (int k = 0; k < path.size(); ++k )
+	//{   
+	//	std::cout << "x: " << path[k].first << " y: " << path[k].second << std::endl;
+	//}
 
     // Print the path inverted.
     // (0,0) is the bottom left corner.
@@ -227,23 +258,25 @@ calcTask
 	(stack & w1
 	,stack & w2
 	,std::vector<stack> & h
-	,int *route_length	// list with number of steps to get the hare or -1 if hare faster
 	,int w1_index
 	,int w2_index
-	,int w2_length
-	,int h_length
 	)
 {
 
 //	route_length.resize(h.size());
-	int tmp[h.size()];
+	short tmp[h.size()];
 
+	int p_local = 0;
+	int length_local = 0;
+		
+	int winW1	= 0;
+	int winW2	= 0;
 
 	// loop over hare routes
 	// OpenMP
 	for (int i = 0; i < h.size(); i++)
 	{
-		int counter = 0;
+		short counter = 0;
 		int h_idx	= 0;
 		int w1_idx 	= 0;
 		int w2_idx 	= 0;
@@ -262,7 +295,10 @@ calcTask
 			if (	w1[w1_idx].first 	== h_stack[h_idx].first
 				&& 	w1[w1_idx].second	== h_stack[h_idx].second)
 			{
-				tmp[i] = counter;
+				
+				p_local += 1;
+				length_local += counter;
+				winW1 = 1;
 				break;
 			}
 
@@ -270,14 +306,15 @@ calcTask
 			if (	w2[w2_idx].first 	== h_stack[h_idx].first
 				&& 	w2[w2_idx].second	== h_stack[h_idx].second)
 			{
-				tmp[i] = counter;
+				p_local += 1;
+				length_local += counter;
+				winW2 = 1;
 				break;
 			}
 
 			// hare at goal
 			if (h_idx == h_stack.size()-1)
 			{
-				tmp[i] = -1;
 				break;
 			}
 			
@@ -288,18 +325,61 @@ calcTask
 			counter++;
 		}
 	}
-
-	for (int i = 0; i < h.size(); i++)
-	{
-		route_length[w1_index*w2_length*h_length + w2_index*h_length + i] = tmp[i];
-	}
+//std::cout << "p_local: " << p_local << " length_local: " << length_local << " p_global: " << p_global << " length_global: " << length_global << std::endl; 
+//EIN ELEMENT IM VECTOR BESTEHT AUS W1 UND W2 INDEX PAARE. LÄNGE UND WAHRSCHEINLICHKEIT IN P_GLOBAL UND LENGTHS_GLOBAL GESPEICHERT!!
+		if(p_local > p_global)
+		{
+			p_global = p_local;
+			length_global = length_local;
+			/*lösche alles aus vector und füge das neue beste element ein */
+			best_wolves.resize(1);
+			best_wolves[0] = std::pair <int, int> (w1_index, w2_index);
+		}else if(p_local == p_global && length_local < length_global)
+		{
+			length_global = length_local;
+			/*lösche alles aus vector und füge das neue beste element ein */
+			best_wolves.resize(1);
+			best_wolves[0] = std::pair <int, int> (w1_index, w2_index);
+		}else if(p_local == p_global && length_local == length_local)
+		{
+			/*hänge element an vector an */
+			if(winW1 == 1 && winW2 == 0)
+			{
+				for( int i = 0; i < best_wolves.size(); i++)
+				{
+					if(best_wolves[i].first == w1_index && best_wolves[i].second == 0)
+					{
+						best_wolves[i].second = -1; 
+						return;
+					}
+					if(best_wolves[i].first == w1_index && best_wolves[i].second == -1) return;
+				}
+				best_wolves.push_back(std::pair <int, int> (w1_index, -1));
+				return;
+			}
+			if(winW1 == 0 && winW2 == 1)
+			{
+				for( int i = 0; i < best_wolves.size(); i++)
+				{
+					if(best_wolves[i].first == 0 && best_wolves[i].second == w2_index)
+					{
+						best_wolves[i].first = -1;
+						return;
+					}
+					if(best_wolves[i].first == -1 && best_wolves[i].second == w2_index) return;
+				}
+				best_wolves.push_back(std::pair <int, int> (-1, w2_index));
+				return;
+			}
+			best_wolves.push_back(std::pair <int, int> (w1_index, w2_index));
+		}
 
 }
 
 
 std::vector< std::pair <int, int> >
 reduceRoutes
-	(int *routes, int w1Size, int w2Size, int hSize
+	(short *routes, int size
 	)
 {
 	std::vector < std::pair <int, int> >  best_wolf_pairs;
@@ -307,43 +387,47 @@ reduceRoutes
 	int wolves_win_counter 	= 0;
 	int wolves_win_sum		= INT_MAX;
 
-	for (int i = 0; i < w1Size; i++)
+	int wolves_win_counter_local 	= 0;
+	int wolves_win_sum_local 		= 0;
+
+	for (int i = 0; i < size; i+=3)
 	{
-		for (int j = 0; j < w2Size; j++)
+
+		if(i == 0)
 		{
-			int wolves_win_counter_local 	= 0;
-			int wolves_win_sum_local 		= 0;
-			for (int k = 0; k < hSize; k++)
-			{
-				std::cout << "i: " << i << " j: " << j << " k: " << k << " index: " << i*w2Size*hSize + j*hSize + k << " inhalt: " << routes[i*w2Size*hSize + j*hSize + k] << std::endl; 
-				if (routes[i*w2Size*hSize + j*hSize + k] != -1) 
-				{
-					wolves_win_counter_local++;		
-					wolves_win_sum_local += routes[i*w2Size*hSize + j*hSize + k];
-				}
-			}
-
-			if (wolves_win_counter_local 	> wolves_win_counter)
-			{
-				wolves_win_counter 	= wolves_win_counter_local;
-				wolves_win_sum		= wolves_win_sum_local;
-				best_wolf_pairs.resize(1);
-				best_wolf_pairs[0] = std::pair<int, int>(i, j);
-			} 	
-			
-			else if (wolves_win_counter_local == wolves_win_counter && wolves_win_sum_local < wolves_win_sum)
-			{
-				wolves_win_sum = wolves_win_sum_local;
-				best_wolf_pairs.resize(1);
-				best_wolf_pairs[0] = std::pair<int, int>(i, j);
-			}
-
-			else if (	wolves_win_counter_local == wolves_win_counter
-				&& 	wolves_win_sum_local 	 ==  wolves_win_sum)
-			{
-				best_wolf_pairs.push_back(std::pair<int, int>(i, j));
-			} 	
+			wolves_win_counter_local = 1;
+			wolves_win_sum_local += routes[2];
+			i+=3;
 		}
+		if(routes[i] == routes[i-3] && routes[i+1] == routes[i-2]) 
+		{
+			wolves_win_counter_local++;		
+			wolves_win_sum_local += routes[i+2];
+			continue;
+		}
+		if (wolves_win_counter_local 	> wolves_win_counter)
+		{
+			wolves_win_counter 	= wolves_win_counter_local;
+			wolves_win_sum		= wolves_win_sum_local;
+			best_wolf_pairs.resize(1);
+			best_wolf_pairs[0] = std::pair<int, int>(routes[i-3], routes[i-2]);
+		} 	
+		
+		else if (wolves_win_counter_local == wolves_win_counter && wolves_win_sum_local < wolves_win_sum)
+		{
+			wolves_win_sum = wolves_win_sum_local;
+			best_wolf_pairs.resize(1);
+			best_wolf_pairs[0] = std::pair<int, int>(routes[i-3], routes[i-2]);
+		}
+
+		else if (	wolves_win_counter_local == wolves_win_counter
+			&& 	wolves_win_sum_local 	 ==  wolves_win_sum)
+		{
+			best_wolf_pairs.push_back(std::pair<int, int>(routes[i], routes[i+1]));
+		}
+		
+		wolves_win_counter_local 	= 0;
+		wolves_win_sum_local 		= 0;
 	
 	}
 
@@ -354,21 +438,6 @@ reduceRoutes
 		
 	
 }
-
-void print(int *route_lengthsRecv, int w1, int w2, int h)
-{
-	for( int i = 0; i < w1; i++)
-	{
-		for( int j = 0; j < w2; j++)
-		{
-			for( int k = 0; k < h; k++)
-			{
-				std::cout << "\ti: " << i << " j: " << j << " k: " << k << std::endl; 
-				std::cout << "Laenge: " << route_lengthsRecv[i*w2*h + j*h + k] << std::endl; 
-			} 
-		} 
-	}
-}		
 
 
 int main(int argc, char **args)
@@ -385,20 +454,20 @@ int main(int argc, char **args)
 	MPI_Request reqs[size];
 	MPI_Status stats[size];
 
-	int sizeX	= 4;
-	int sizeY	= 4;
+	int sizeX	= SIZEX;
+	int sizeY	= SIZEY;
 
-	int goalX	= sizeX - 1;
-	int goalY	= sizeY - 1;
+	int goalX	= SIZEX - 1;
+	int goalY	= SIZEY - 1;
 
-	int w1_startX	= 0;
-	int w1_startY	= 0;
+	int w1_startX	= XW1;
+	int w1_startY	= YW1;
 
-	int w2_startX	= 0;
-	int w2_startY	= 4;
+	int w2_startX	= XW2;
+	int w2_startY	= YW2;
 	
-	int h_startX	= 0;
-	int h_startY	= 2;
+	int h_startX	= XH;
+	int h_startY	= YH;
 	
 	stack curStack;
 	std::vector<stack> paths_w1;	
@@ -416,7 +485,7 @@ int main(int argc, char **args)
 	,w1_startY
 	,curStack
 	,paths_w1
-	,true
+	,false
 	,sizeX + sizeY
 	);
 
@@ -429,7 +498,7 @@ int main(int argc, char **args)
 	,w2_startY
 	,curStack
 	,paths_w2
-	,true
+	,false
 	,sizeX + sizeY
 	);
 
@@ -466,27 +535,25 @@ int main(int argc, char **args)
 	
 	std::cout << "rank: " << rank << " start: " << start << " end: " << end << std::endl;
 	
-	std::cerr << "\nAllocating space for route comparison..." << std::endl;
-	int route_lengths[(end-start)*paths_w2.size()*paths_h.size()];
-
 	std::cerr << "\nComparing paths..." << std::endl;
+
+	struct timeval t0, t;
+	if(rank == 0)
+	{
+		gettimeofday(&t0, NULL);
+	}
 
 	for(int i = start; i < end; ++i)
 	{
 		for(int j = 0; j < paths_w2.size(); ++j)
 		{
 			
-			// std::cerr << "Starting task: w1 = " << i << "/" << paths_w1.size() << "\tw2 = " << j << "/" << paths_w2.size() << std::endl; 
-
 			calcTask
 			(paths_w1[i]
 			,paths_w2[j]
 			,paths_h
-			,route_lengths		// list with number of steps to get the hare or -1 if hare faster
-			,i-start
+			,i
 			,j
-			,paths_w2.size()
-			,paths_h.size()
 			);		
 		}
 	}
@@ -494,76 +561,170 @@ int main(int argc, char **args)
 
 	if(rank == 0)
 	{
-		int route_lengthsRecv[paths_w1.size()*paths_w2.size()*paths_h.size()];
+		gettimeofday(&t, NULL);
+		std::cout << "Time for calculating best way: " << ((int) (t.tv_sec - t0.tv_sec) * (int)1000000 + (int)t.tv_usec - (int)t0.tv_usec) * 1e-3 << " ms" << std::endl;;
+	}
 	
-		//Copy values calculated by rank 0 into big array	
-		for( int i = 0; i < end-start; i++)
-		{
-			for( int j = 0; j < paths_w2.size(); j++)
-			{
-				for( int k = 0; k < paths_h.size() ; k++)
-				{
-					route_lengthsRecv[i*paths_w2.size()*paths_h.size() + j*paths_h.size() + k] = route_lengths[i*paths_w2.size()*paths_h.size() + j*paths_h.size() + k];
-				} 		
-			} 
-		} 
+	//copy the vector to an Array (easier to send)
+	int bestWolvesArray[best_wolves.size()*2];
+	for(int i = 0; i < best_wolves.size(); i++)
+	{
+		bestWolvesArray[2*i] = best_wolves[i].first;
+		bestWolvesArray[2*i+1] = best_wolves[i].second;
+	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	//how many successes has each rank
+	int p_rank[size];	
+	MPI_Allgather(&p_global, 1, MPI_INT, &p_rank, 1, MPI_INT, MPI_COMM_WORLD);
+	//whats the shortest way for_each rank
+	int length_rank[size];	
+	MPI_Allgather(&length_global, 1, MPI_INT, &length_rank, 1, MPI_INT, MPI_COMM_WORLD);
+
+	int bestRanks[size];
+	int bestP = 0;
+	int bestL = 1000000;
+	
+	if(rank == 0){
+	//decide who hast the best wolves by looking at p and length of each rank
+		for( int i = 0; i < size; i++)
+		{
+			if(p_rank[i] > bestP)
+			{
+				for( int j = 0; j < size; j++)
+				{
+					bestRanks[j] = 0;
+				}
+				bestRanks[i] = 1;
+				bestP = p_rank[i];
+				bestL = length_rank[i];
+			}else if(p_rank[i] == bestP && length_rank[i] < bestL)
+			{
+				for( int j = 0; j < size; j++)
+				{
+					bestRanks[j] = 0;
+				}
+				bestRanks[i] = 1;
+				bestP = p_rank[i];
+				bestL = length_rank[i];
+			}else if(p_rank[i] == bestP && length_rank[i] == bestL)
+			{
+				bestRanks[i] = 1;
+			}
+		}
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&bestRanks, size, MPI_INT, 0, MPI_COMM_WORLD);
+
+//how many best wolves has every rank
+	int numOfEl[size];
+	int x = 0;
+	int numWolves = best_wolves.size();
+	for( int i = 0; i < size; i++)
+	{
+		numOfEl[i] = 0;
+	}
+	numOfEl[rank] = numWolves;
+
+//if root decided that you have one of the best wolves send them to root, numWolves ^= number of best wolves the prozess rank has
+	if(rank != 0)
+	{
+		if(bestRanks[rank] == 1){
+			MPI_Send(&numWolves, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		}else{
+			MPI_Send(&x, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		}
+	}else if(rank == 0)
+	{
+		(bestRanks[0] == 1)  ? numOfEl[0] = numWolves : numOfEl[0] = 0;
+		for( int i = 1; i < size; i++)
+		{
+			MPI_Recv(&numOfEl[i], 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+		}
+	}
+	
+
+
+	if(rank == 0)
+	{
+
+		int allBestCount = 0;
+
+		for( int i = 0; i < size; i++)
+		{
+			allBestCount += numOfEl[i];
+		}
+	
+		int allBest[allBestCount];
+		for( int i = 0; i < best_wolves.size(); i+=2)
+		{
+			allBest[i] = best_wolves[i].first;
+			allBest[i+1] = best_wolves[i].second;
+		}
+
+		int startIndexRanks[size];
+		for( int i = 0; i < size; i++)
+		{
+			startIndexRanks[i] = 0;
+		}
+		for( int i = 0; i < size; i++)
+		{
+			for( int j = 0; j < i; j++)
+			{
+				startIndexRanks[i] += numOfEl[j];
+			}
+		}
+		
 		//receiving calculated values from all other ranks
 		for( int i = 1; i < size; i++)
 		{
-			MPI_Recv(&route_lengthsRecv[i*((paths_w1.size()*paths_w2.size()*paths_h.size())/size)], (end-start)*paths_w2.size()*paths_h.size(), MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE); // &reqs[i]);
-		}			
-			
-//last rank may have more paths to calculate
-//			MPI_Recv(&route_lengthsRecv[i*((paths_w1.size()*paths_w2.size()*paths_h.size())/size)], (end-start)*paths_w2.size()*paths_h.size(), MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE); //, &status[i]);
-
-//		print(route_lengthRecv, paths_w1.size(), paths_w2.size(), paths_h.size());
-
-		std::cerr << "Reducing routes..." << std::endl;
-		std::vector< std::pair<int,int> > best_wolves = reduceRoutes(route_lengthsRecv, paths_w1.size(), paths_w2.size(), paths_h.size());
-		std::cerr << "Num best routes: " << best_wolves.size() << std::endl;
-	
-		for (int i = 0; i < best_wolves.size(); i++)
-		{
-			std::cout << "w1 = " << best_wolves[i].first << "\tw2 = " << best_wolves[i].second << std::endl;
-		}	
-	
-	#if 0
-		for (int i = 0; i < paths_w1.size(); i++)
-		{
-			for (int j = 0; j < paths_w2.size(); j++)
-			{
-				std::cout << "WOLF PATHS: w1 = " << i << ", w2 = " << j << std::endl;
-				std::cout << "WOLF 1:" << std::endl;
-				printPath(paths_w1[i], sizeX, sizeY);
-				std::cout << std::endl;
-				std::cout << "WOLF 2:" << std::endl;
-				printPath(paths_w2[j], sizeX, sizeY);
-				std::cout << std::endl;
-				for (int k = 0; k < paths_h.size(); k++)
-				{
-					std::cout << "Length = " << route_lengthsRecv[i*paths_w1.size()*paths_h.size() + j*paths_h.size() + k] << std::endl;
-					std::cout << std::endl;
-				}
-				for (int k = 0; k < paths_h.size(); k++)
-				{
-					printPath(paths_h[k], sizeX, sizeY);
-					std::cout << std::endl;
-				}
-				std::cout << std::endl;
-			
-			}
+			if(numOfEl[i] == 0) continue;
+			MPI_Recv(&allBest[startIndexRanks[i]], numOfEl[i], MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE); // &reqs[i]);
 		}
-	
-	#endif
+		
+		std::cerr << std::endl; 
+		std::cerr << "best propability: " << (double)bestP/paths_h.size() << std::endl; 
+		std::cerr << "shortest way: " << (double)bestL/paths_h.size() << std::endl;
+		std::cerr << std::endl; 
+#if 0
+		std::cout << "Routes hare: " << std::endl;
+		for (int k = 0; k < paths_h.size(); k++)
+		{
+		std::cout << std::endl; 
+			printPath(paths_h[k], sizeX, sizeY);
+		std::cout << std::endl;
+		}
+		std::cout << std::endl; 
+		std::cout << std::endl; 
 
+		std::cout << "Best wolf routes: " << std::endl; 
+		for (int i = 0; i < allBestCount; i++)
+		{
+			//std::cout << "w1 = " << best_wolves[i].first << "\tw2 = " << best_wolves[i].second << std::endl;
+		
+			if(allBest[i] != -1)
+			{
+				std::cout << std::endl; 
+				std::cout << "w1: " << allBest[i] << std::endl;
+				std::cout << std::endl; 
+				printPath(paths_w1[allBest[i]], sizeX, sizeY);
+			}
+			if(allBest[i+1] != -1)
+			{
+				std::cout << "w2: " << allBest[i+1] << std::endl;
+				std::cout << std::endl; 
+				printPath(paths_w2[allBest[i+1]], sizeX, sizeY);
+				std::cout << std::endl; 
+				std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+			}
+		}	
+#endif 	
 	}else{
-		MPI_Send(&route_lengths[0], (end-start)*paths_w2.size()*paths_h.size(), MPI_INT, 0, 0, MPI_COMM_WORLD); //, &reqs[rank]); //+(size-1)]);
+		if(bestRanks[rank] == 1) MPI_Send(&bestWolvesArray[0], numWolves, MPI_INT, 0, 0, MPI_COMM_WORLD); //, &reqs[rank]); //+(size-1)]);
 	}
 	
 	MPI_Barrier(MPI_COMM_WORLD);
-
-	std::cout << "rank: " << rank << std::endl;
 	MPI_Finalize();
 
 	return 0;

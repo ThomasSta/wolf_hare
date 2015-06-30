@@ -1,4 +1,4 @@
-CPP     = g++
+CPP     = mpic++ #g++
 CFLAGS  = -O3 -march=native
 RM      = rm -f
 
@@ -9,5 +9,5 @@ all: asdf
 clean: 
 	$(RM) asdf
 
-vector_skel: asdf.cpp 
+asdf: asdf.cpp 
 	$(CPP) $(CFLAGS) -o $@ $^
