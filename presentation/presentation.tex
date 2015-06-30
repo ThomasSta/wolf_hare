@@ -1,0 +1,279 @@
+\documentclass{beamer}
+
+\mode<presentation> {
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{algpseudocode}
+\usepackage{pifont}
+\usepackage[]{algorithm2e}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Short title]{Wolf and Hare} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Nils Kohl, Thomas Stadelmayer, David Uhl} % Your name
+\institute[FAU] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+Friedrich-Alexander Universit\"at Erlangen-N\"urnberg \\ % Your institution for the title page
+\medskip
+}
+\date{03.07.2015} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{Wolf and Hare}
+\subsection{Spielregeln}
+\begin{frame}
+\frametitle{Spielregeln}
+\begin{itemize}
+\item 2D Spielfeld mit zwei W\"olfen und einem Hasen
+\item Zuf\"allige Startposition auf Spielfeld
+\item Pro Zug: W\"olfe jeweils einen Schritt, Hase einen Schritt
+\item Spielende: Wolf f\"angt Hasen oder Hase erreicht Ziel
+\end{itemize}
+\begin{block}{Aufgabe}
+\begin{itemize}
+
+\item Spiel parallelisieren
+\item Jede Maschine auf Cluster testet verschiede Routen
+\end{itemize}
+
+\end{block}
+\end{frame}
+ 
+%------------------------------------------------
+\subsection{Visualisierung}
+\begin{frame}
+\frametitle{Visualisierung (1)}
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.45\textwidth} % Left column and width
+\begin{table}
+\begin{tabular}{l l}
+\toprule
+\textbf{x-Position} & \textbf{y-Position}\\
+\midrule
+ 0 & 0 \\
+0 & 1 \\
+0 & 2 \\
+0 & 3 \\
+0 & 4 \\
+1 & 4 \\
+2 & 4 \\
+3 & 4 \\
+4 & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Wolf1}
+\end{table}
+
+\column{.5\textwidth} % Right column and width
+Bild der Route einfuegen
+\end{columns}
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Visualisierung (2)}
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.45\textwidth} % Left column and width
+\begin{table}
+\begin{tabular}{l l}
+\toprule
+\textbf{x-Position} & \textbf{y-Position}\\
+\midrule
+ 0 & 0 \\
+1 & 0 \\
+2 & 0 \\
+3 & 0 \\
+4 & 0 \\
+4 & 1 \\
+4 & 2 \\
+4 & 3 \\
+4 & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Route1 von Wolf1}
+\end{table}
+
+\column{.5\textwidth} % Right column and width
+\begin{table}
+\begin{tabular}{l l}
+\toprule
+\textbf{x-Position} & \textbf{y-Position}\\
+\midrule
+ 0 & 2 \\
+0 & 3 \\
+0 & 4 \\
+1 & 4 \\
+2 & 4 \\
+3 & 4 \\
+4 & 4 \\
+4 & 4 \\
+4 & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Route1 von Hase}
+\end{table}
+\end{columns}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Visualisierung (3)}
+
+\end{frame}
+
+\section{Implementierung}
+\subsection{Seriell}
+
+\begin{frame}
+\frametitle{Seriell}
+\begin{itemize}
+\item Vergleiche Route1 von Wolf1 einer Routen vom Hasen
+\item In neue Liste Anzahl der Schritte bis Hase gefangen wird \\(-1 wenn Hase vorher im Ziel)
+\item Alle Routen von Wolf1 
+\item Analog Wolf2
+\item Vergleiche Liste von Wolf1 und Liste von Wolf2
+\item Ausgabe Beste Routen
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{algorithm}[H]
+\frametitle{Seriell}
+% \KwData{this text}
+% \KwResult{how to write algorithm with \LaTeX2e }
+% initialization\;
+\For{all wolf1 routes} {
+ \For{all hare routes}{
+  compare route\_i of wolf1 with route\_j of hare\;
+  \Comment{compares each element}\;
+  \Comment{counter++}\;
+
+  \eIf{capture}{
+   push counter to list\;
+   }{
+   add -1 in list\;
+  }
+ }
+ }
+ \caption{How to get best routes}
+\end{algorithm}
+\end{frame}
+
+\subsection{Parallel}
+\begin{frame}
+\frametitle{Parallel}
+\begin{itemize}
+\item Tupel von einer Route Wolf1 und Wolf2
+\item Vergleiche Tupel mit allen Routen von Hase
+\item Schreibe in Liste Anzahl der Schritte und Wahrscheinlichkeit als Indikatoren
+\item Wenn fuer neues Tupel bessere Loesung gibt, dann loesche alten Wert und schreibe neuen rein
+
+\item Tupel auf Prozessoren aufteielen
+\item Nach Berechnung vergleiche die Listen
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{algorithm}[H]
+\frametitle{Parallel}
+% \KwData{this text}
+% \KwResult{how to write algorithm with \LaTeX2e }
+% initialization\;
+ $<$r1w1,r2w2$>$  = choose tupel of routes wolf1 and wolf2\;
+ \For{all hare routes}{
+  compare tupel with route\_i of hare\;
+  \Comment{compares each element}\;
+  \Comment{counter++ and clac probability}\;
+
+  \eIf{capture}{
+	\If{counter $<$ counter of prev list\_elem}{
+		   replace tupel of counter and probability ($<$ 5,$\dfrac{1}{24}$ $>$) in list\;
+	}  
+	\If{counter $=$ counter of prev list\_elem}{
+		push tupel of counter and probability to list\;	
+	}
+  
+   }{
+	continue\;
+  }
+ }
+ \caption{How to get best routes}
+\end{algorithm}
+\end{frame}
+
+
+\end{document} 

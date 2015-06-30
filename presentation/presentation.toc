@@ -1,0 +1,7 @@
+\beamer@endinputifotherversion {3.33pt}
+\beamer@sectionintoc {1}{Wolf and Hare}{3}{0}{1}
+\beamer@subsectionintoc {1}{1}{Spielregeln}{3}{0}{1}
+\beamer@subsectionintoc {1}{2}{Visualisierung}{4}{0}{1}
+\beamer@sectionintoc {2}{Implementierung}{7}{0}{2}
+\beamer@subsectionintoc {2}{1}{Seriell}{7}{0}{2}
+\beamer@subsectionintoc {2}{2}{Parallel}{9}{0}{2}
