@@ -11,20 +11,23 @@
 typedef std::vector <std::pair <int, int> > stack; 
 
 //size board
-#define SIZEX 6 
-#define SIZEY 6
+#define SIZEX 5 
+#define SIZEY 5
 
 //start wolf1
-#define	XW1 5
-#define YW1 0
+#define	XW1 3
+#define YW1 1
+#define W1_ALL_PATHS (true)
 
 //start wolf2
-#define XW2 2
-#define YW2 1
+#define XW2 4
+#define YW2 0
+#define W2_ALL_PATHS (true)
 	
 //start hare
 #define XH 1
 #define YH 3
+#define H_ALL_PATHS (false)
 
 int p_global = 0;
 int length_global = 1000000;
@@ -59,7 +62,9 @@ void
 printPath
 	(stack 	path
 	,int	height
-	,int	width)
+	,int	width
+	,int	startX
+	,int	startY)
 {
 	//for (int k = 0; k < path.size(); ++k )
 	//{   
@@ -73,13 +78,26 @@ printPath
         for (int i = 0; i < width; ++i)
         {   
             bool printed = false;
+			if(i == startX && j == startY)
+			{
+				std::cout << "X";
+            	std::cout << ' ';
+				printed = true;
+				continue;
+			}else if(i == SIZEX-1 && j == SIZEY-1)
+			{
+				std::cout << "O";
+            	std::cout << ' ';
+				printed = true;
+				continue;
+   			}
             for (int k = 0; k < path.size(); ++k )
-            {   
-                if (containsPair(path, i, j ))
+            {
+				if (containsPair(path, i, j ) && printed == false)
                 {   
-                    std::cout << PATH;
-                    printed = true;
-                    break;
+						std::cout << PATH;
+                    	printed = true;
+                    	break;
                 }   
             }   
             if (!printed) std::cout << EMPTY;
@@ -488,7 +506,7 @@ int main(int argc, char **args)
 	,w1_startY
 	,curStack
 	,paths_w1
-	,false
+	,W1_ALL_PATHS
 	,sizeX + sizeY
 	);
 
@@ -501,7 +519,7 @@ int main(int argc, char **args)
 	,w2_startY
 	,curStack
 	,paths_w2
-	,false
+	,W2_ALL_PATHS
 	,sizeX + sizeY
 	);
 
@@ -514,7 +532,7 @@ int main(int argc, char **args)
 	,h_startY
 	,curStack
 	,paths_h
-	,false
+	,H_ALL_PATHS
 	,sizeX + sizeY
 	);
 
@@ -699,19 +717,28 @@ int main(int argc, char **args)
 
 		print(allBest, allBestCount); 
 		
+		int countAll = 0;
+		for(int i = 0; i < allBestCount; i+=2)
+		{
+    		if(allBest[i] == -1) countAll += paths_w1.size();
+			else if(allBest[i+1] == -1) countAll += paths_w2.size();
+			else countAll++;
+		}
+ 
 		std::cout << std::endl; 
 
 		std::cout << std::endl; 
 		std::cout << "best propability: " << (double)bestP/paths_h.size() << std::endl; 
+		std::cout << "average catch probability: " << (double)(((double)countAll)/(paths_w1.size()*paths_w2.size())) << std::endl; 
 		std::cout << "shortest way: " << (double)bestL/paths_h.size() << std::endl;
 		std::cout << std::endl; 
 #if 1
 		std::cout << "Routes hare: " << std::endl;
 		for (int k = 0; k < paths_h.size(); k++)
 		{
-		std::cout << std::endl; 
-			printPath(paths_h[k], sizeX, sizeY);
-		std::cout << std::endl;
+			std::cout << std::endl; 
+			printPath(paths_h[k], sizeX, sizeY, XH, YH);
+			std::cout << std::endl;
 		}
 		std::cout << std::endl; 
 		std::cout << "paths_w1 size: " << paths_w1.size() << std::endl;
@@ -726,18 +753,32 @@ int main(int argc, char **args)
 			if(allBest[i] != -1)
 			{
 				std::cout << std::endl; 
-				std::cout << "w1: " << allBest[i] << std::endl;
-				std::cout << std::endl; 
-				printPath(paths_w1[allBest[i]], sizeX, sizeY);
+				std::cout << "w1 with route " << allBest[i] << " catches the hare!" << std::endl;
+				std::cout << std::endl;
+				printPath(paths_w1[allBest[i]], sizeX, sizeY, XW1, YW1);
+				std::cout << std::endl;
+			}
+			else
+			{
+				std::cout << std::endl;
+				std::cout << "w1 route doesn't matter, w2 with route " << allBest[i+1] << " always catches the hare!" << std::endl;
+				std::cout << std::endl;
 			}
 			if(allBest[i+1] != -1)
 			{
-				std::cout << "w2: " << allBest[i+1] << std::endl;
+				std::cout << "w2 with route " << allBest[i+1] << " catches the hare! " << std::endl;
 				std::cout << std::endl; 
-				printPath(paths_w2[allBest[i+1]], sizeX, sizeY);
+				printPath(paths_w2[allBest[i+1]], sizeX, sizeY, XW2, YW2);
 				std::cout << std::endl; 
-				std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 			}
+			else
+			{
+				std::cout << std::endl;
+				std::cout << "w2 route doesn't matter, w1 with route " << allBest[i] << " always catches the hare!" << std::endl;
+				std::cout << std::endl;
+			}
+				std::cout << std::endl;
+				std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 		}	
 #endif 	
 	}else{
