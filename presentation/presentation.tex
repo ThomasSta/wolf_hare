@@ -210,9 +210,9 @@ Route Hase
 \begin{frame}
 \frametitle{Seriell}
 \begin{itemize}
-\item Routenerstellung für die Wölfe und den Hasen
+\item Routenerstellung für die W\"lfe und den Hasen
 \item Kombination der Wolfsrouten zu Routenpaaren
-\item Unabhängiger Task: Vergleich eines Routenpaares mit allen Routen des Hasens
+\item Unabh\"angiger Task: Vergleich eines Routenpaares mit allen Routen des Hasens
 \item Speicherung der Erfolge bzw. Misserfolge des Routenpaares für alle Hasenrouten
 \item Vergleich aller Routenpaare
 \end{itemize}
@@ -226,13 +226,13 @@ Route Hase
 % \KwData{this text}
 % \KwResult{how to write algorithm with \LaTeX2e }
 % initialization\;
-\For{(w1, w2) in wolf_routes} {
- \For{h in hare_routes}{
+\For{(w1, w2) in wolf\_routes} {
+ \For{h in hare\_routes}{
    /* test if a wolf catches the hare before it arrives at the special square */
    compare (w1, w2) with h;
     
-  %\Comment{compares each element}\;
-  %\Comment{counter++}\;
+  \Comment{compares each element}\;
+  \Comment{counter++}\;
 
   \eIf{caught}{
    append number of steps needed to list\;
@@ -241,7 +241,7 @@ Route Hase
   }
  }
  }
- \caption{How to get the best routes}
+% \caption{How to get the best routes}
 \end{algorithm}
 \end{frame}
 
@@ -252,7 +252,7 @@ Route Hase
 \item Tupel von einer Route Wolf1 und Wolf2
 \item Vergleiche Tupel mit allen Routen von Hase
 \item Schreibe in Liste Anzahl der Schritte und Wahrscheinlichkeit als Indikatoren
-\item Wenn fuer neues Tupel bessere Loesung gibt, dann loesche alten Wert und schreibe neuen rein
+\item Wenn f\"ur neues Tupel bessere L\"osung gibt, dann l\"osche alten Wert und schreibe neuen rein
 
 \item Tupel auf Prozessoren aufteielen
 \item Nach Berechnung vergleiche die Listen
@@ -269,7 +269,7 @@ Route Hase
  \For{all hare routes}{
   compare tupel with route\_i of hare\;
   \Comment{compares each element}\;
-  \Comment{in case of success probability-local++}\;
+  \Comment{in case of success probability\_local++}\;
  }
  \parskip 12pt
  \noindent\hspace*{50mm} .\\
@@ -284,17 +284,17 @@ Route Hase
 % \KwData{this text}
 % \KwResult{how to write algorithm with \LaTeX2e }
 % initialization\;
-  \If{probability-local $<$ probability-global}{
-  	probability-global = probability-local\;
+  \If{probability\_local $<$ probability\_global}{
+  	probability\_global = probability\_local\;
   	delete all elements in list\;
   	add $<$r1w1, r2w2$>$ to list\;  
    }
-   \If{p-local $==$ p-global AND counter-local $<$ counter-global}{
-  	counter-global = counter-local\;
+   \If{p\_local $==$ p\_global AND counter\_local $<$ counter\_global}{
+  	counter\_global = counter\_local\;
   	delete all elements in list\;
   	add $<$r1w1, r2w2$>$ to list\;  
    }
-   \If{p-local $==$ p-global AND counter-local $==$ counter-global}{
+   \If{p\_local $==$ p\_global AND counter\_local $==$ counter\_global}{
   	add $<$r1w1, r2w2$>$ to list\;  
    }
  \caption{How to get best routes}
@@ -304,7 +304,7 @@ Route Hase
 \begin{frame}
 \frametitle{Parallel}
 \begin{itemize}
-\item Sammle alle p-global und counter-global (MPI-Allgather)
+\item Sammle alle p\_global und counter\_global (MPI-Allgather)
 \item Root: entscheide welcher Rank die besten Werte hat
 \item Teile jedem Rank mit ob er die besten hat (1) oder nicht (0) (MPI-Broadcast)
 \item Jeder Rank, der eine 1 erhalten hat, sendet seine ermittelten Routen zu root (MPI-Send)
