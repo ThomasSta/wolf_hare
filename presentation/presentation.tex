@@ -210,12 +210,11 @@ Route Hase
 \begin{frame}
 \frametitle{Seriell}
 \begin{itemize}
-\item Vergleiche Route1 von Wolf1 einer Routen vom Hasen
-\item In neue Liste Anzahl der Schritte bis Hase gefangen wird \\(-1 wenn Hase vorher im Ziel)
-\item Alle Routen von Wolf1 
-\item Analog Wolf2
-\item Vergleiche Liste von Wolf1 und Liste von Wolf2
-\item Ausgabe Beste Routen
+\item Routenerstellung für die Wölfe und den Hasen
+\item Kombination der Wolfsrouten zu Routenpaaren
+\item Unabhängiger Task: Vergleich eines Routenpaares mit allen Routen des Hasens
+\item Speicherung der Erfolge bzw. Misserfolge des Routenpaares für alle Hasenrouten
+\item Vergleich aller Routenpaare
 \end{itemize}
 \end{frame}
 
@@ -227,20 +226,22 @@ Route Hase
 % \KwData{this text}
 % \KwResult{how to write algorithm with \LaTeX2e }
 % initialization\;
-\For{all wolf1 routes} {
- \For{all hare routes}{
-  compare route\_i of wolf1 with route\_j of hare\;
-  \Comment{compares each element}\;
-  \Comment{counter++}\;
+\For{(w1, w2) in wolf_routes} {
+ \For{h in hare_routes}{
+   /* test if a wolf catches the hare before it arrives at the special square */
+   compare (w1, w2) with h;
+    
+  %\Comment{compares each element}\;
+  %\Comment{counter++}\;
 
-  \eIf{capture}{
-   push counter to list\;
+  \eIf{caught}{
+   append number of steps needed to list\;
    }{
-   add -1 in list\;
+   add flag to list (e.g. -1)\;
   }
  }
  }
- \caption{How to get best routes}
+ \caption{How to get the best routes}
 \end{algorithm}
 \end{frame}
 
