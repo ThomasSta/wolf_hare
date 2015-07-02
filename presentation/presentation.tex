@@ -137,7 +137,7 @@ Friedrich-Alexander Universit\"at Erlangen-N\"urnberg \\ % Your institution for 
 \end{table}
 
 \column{.5\textwidth} % Right column and width
-\includegraphics[scale=1,natwidth=610,natheight=642]{wolf_route_bsp.png}
+\includegraphics[scale=1]{wolf_route_bsp.png}
 \end{columns}
 
 \end{frame}
@@ -147,11 +147,11 @@ Friedrich-Alexander Universit\"at Erlangen-N\"urnberg \\ % Your institution for 
 \begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
 
 \column{.5\textwidth} % Right column and width
-\includegraphics[scale=1,natwidth=610,natheight=642]{wolf_route.png}\\
+\includegraphics[scale=1]{wolf_route.png}\\
 RouteX Wolf1
 
 \column{.5\textwidth} % Right column and width
-\includegraphics[scale=1,natwidth=610,natheight=642]{hare_route.png}\\
+\includegraphics[scale=1]{hare_route.png}\\
 Route Hase
 \end{columns}
 \end{frame}
@@ -210,10 +210,10 @@ Route Hase
 \begin{frame}
 \frametitle{Seriell}
 \begin{itemize}
-\item Routenerstellung für die W\"lfe und den Hasen
+\item Routenerstellung f\"ur die W\"olfe und den Hasen
 \item Kombination der Wolfsrouten zu Routenpaaren
 \item Unabh\"angiger Task: Vergleich eines Routenpaares mit allen Routen des Hasens
-\item Speicherung der Erfolge bzw. Misserfolge des Routenpaares für alle Hasenrouten
+\item Speicherung der Erfolge bzw. Misserfolge des Routenpaares f\"ur alle Hasenrouten
 \item Vergleich aller Routenpaare
 \end{itemize}
 \end{frame}
@@ -251,8 +251,8 @@ Route Hase
 \begin{itemize}
 \item Tupel von einer Route Wolf1 und Wolf2
 \item Vergleiche Tupel mit allen Routen von Hase
-\item Merke Anzahl der Schritte und Wahrscheinlichkeit als Indikatoren
-\item Wenn ein Tupel mit besseren Indikatoren gefunden wird, dann l\"osche alle alten Werte und f\"uge Tupel in Liste ein
+\item Schreibe in Liste Anzahl der Schritte und Wahrscheinlichkeit als Indikatoren
+\item Wenn f\"ur neues Tupel bessere L\"osung gibt, dann l\"osche alten Wert und schreibe neuen rein
 
 \item Tupel auf Prozessoren aufteielen
 \item Nach Berechnung vergleiche die Listen
