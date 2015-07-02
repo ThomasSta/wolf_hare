@@ -303,7 +303,7 @@ Route Hase
 \begin{frame}
 \frametitle{Parallel}
 \begin{itemize}
-\item Sammle alle p-global und counter-global (MPI-Gather)
+\item Sammle alle p-global und counter-global (MPI-Allgather)
 \item Root: entscheide welcher Rank die besten Werte hat
 \item Teile jedem Rank mit ob er die besten hat (1) oder nicht (0) (MPI-Broadcast)
 \item Jeder Rank, der eine 1 erhalten hat, sendet seine ermittelten Routen zu root (MPI-Send)
