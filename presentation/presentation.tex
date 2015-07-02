@@ -268,23 +268,46 @@ Route Hase
  \For{all hare routes}{
   compare tupel with route\_i of hare\;
   \Comment{compares each element}\;
-  \Comment{counter++ and clac probability}\;
-
-  \eIf{capture}{
-	\If{counter $<$ counter of prev list\_elem}{
-		   replace tupel of counter and probability ($<$ 5,$\dfrac{1}{24}$ $>$) in list\;
-	}  
-	\If{counter $=$ counter of prev list\_elem}{
-		push tupel of counter and probability to list\;	
-	}
-  
-   }{
-	continue\;
-  }
+  \Comment{in case of success probability-local++}\;
  }
+ \parskip 12pt
+ \noindent\hspace*{50mm} .\\
+ \noindent\hspace*{50mm} .\\
+ \noindent\hspace*{50mm} .\\
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+\begin{algorithm}[H]
+\frametitle{Parallel}
+% \KwData{this text}
+% \KwResult{how to write algorithm with \LaTeX2e }
+% initialization\;
+  \If{probability-local $<$ probability-global}{
+  	probability-global = probability-local\;
+  	delete all elements in list\;
+  	add $<$r1w1, r2w2$>$ to list\;  
+   }
+   \If{p-local $==$ p-global AND counter-local $<$ counter-global}{
+  	counter-global = counter-local\;
+  	delete all elements in list\;
+  	add $<$r1w1, r2w2$>$ to list\;  
+   }
+   \If{p-local $==$ p-global AND counter-local $==$ counter-global}{
+  	add $<$r1w1, r2w2$>$ to list\;  
+   }
  \caption{How to get best routes}
 \end{algorithm}
 \end{frame}
 
+\begin{frame}
+\frametitle{Parallel}
+\begin{itemize}
+\item Sammle alle p-global und counter-global (MPI-Gather)
+\item Root: entscheide welcher Rank die besten Werte hat
+\item Teile jedem Rank mit ob er die besten hat (1) oder nicht (0) (MPI-Broadcast)
+\item Jeder Rank, der eine 1 erhalten hat, sendet seine ermittelten Routen zu root (MPI-Send)
+\end{itemize}
+\end{frame}
 
 \end{document} 
