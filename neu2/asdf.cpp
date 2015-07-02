@@ -319,7 +319,6 @@ calcTask
 				p_local += 1;
 				length_local += counter;
 				winW1 = 1;
-//	if(w1_index < 2) std::cout << "w1 got hare! indizes: " << w1_index << " " << w2_index << " " << i << " p_local: " << p_local << " winW1: " << winW1 << " winW2: " << winW2 << std::endl;
 				break;
 			}
 
@@ -330,7 +329,6 @@ calcTask
 				p_local += 1;
 				length_local += counter;
 				winW2 = 1;
-//	if(w1_index < 2) std::cout << "w2 got hare! indizes: " << w1_index << " " << w2_index << " " << i << " p_local: " << p_local << " winW1: " << winW1 << " winW2: " << winW2 << std::endl;
 				break;
 			}
 
@@ -338,7 +336,6 @@ calcTask
 			if (h_idx == h_stack.size()-1)
 			{
 				hareCounter++;
-//	if(w1_index < 2) std::cout << "hare wins! indizes: " << w1_index << " " << w2_index << " " << i << " p_local: " << p_local << " winW1: " << winW1 << " winW2: " << winW2 << std::endl;
 				break;
 			}
 			
